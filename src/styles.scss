@@ -1,0 +1,37 @@
+@import 'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css';
+
+body {
+    font-family: "Segoe UI";
+}
+
+.fa-folder,
+.fa-folder-open {
+    color: #d2a032;
+    cursor: pointer;
+    width: 20px;
+    padding: 0 6px 0 0;
+}
+
+.low, .medium, .high,
+.cline-no {
+  background: transparent; /* background: #FCE1E5; */
+}
+
+.coverage-summary td,
+.coverage-summary th {
+    padding: 2px;
+}
+
+.coverage-summary td {
+    border-right: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+}
+
+.coverage-summary tr {
+    border-bottom: 1px solid #eee;
+}
+
+.chart {
+    border-radius: 2px;
+    overflow: hidden;
+}
