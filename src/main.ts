@@ -1,11 +1,13 @@
 /// <reference path="../typings/index.d.ts" />
 
+const FILE_PATTERN = /\.(js|coffee|ts|cjs)x?$/;
+
 let $pathCells =  $('.coverage-summary .file[data-value]')
 .toArray()
 .map($);
 
 $pathCells
-.filter(x => !/\.(js|coffee|ts)x?$/.test(x.data('value')))
+.filter(x => !FILE_PATTERN.test(x.data('value')))
 .forEach(x => {
     x.prepend(`
         <i class="fa fa-angle-down" title="Expand/collapse"></i>
@@ -131,7 +133,7 @@ class FolderStructure {
             .toArray()
             .map($)
             .map(x => x.data('value'))
-            .filter(x => !/\.(js|coffee|ts)x?$/.test(x))
+            .filter(x => !FILE_PATTERN.test(x))
             .map(x => x.replace(/\/$/,''));
     }
 
@@ -207,7 +209,13 @@ class FolderStructure {
 
     private setEvents() {
         $('.file a')
-            .click(e => e.preventDefault());
+            .click(e => {
+                let pathValue = $(e.currentTarget).parents('.file').data('value');
+                let isFile = FILE_PATTERN.test(pathValue);
+                if (!isFile) {
+                    e.preventDefault();
+                }
+            });
         
         $('.file')
             .click((e: JQueryEventObject) => { // + debounce
