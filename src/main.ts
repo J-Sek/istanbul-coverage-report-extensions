@@ -14,17 +14,11 @@ $pathCells
 
 $pathCells
 .filter(x => /\.(js|ts)x?$/.test(x.data('value')))
-.forEach(x => {
-    x.prepend(`
-        <i class="fa fa-code"></i>`);
-});
+.forEach(x => x.prepend(`<i class="fa fa-code"></i>`));
 
 $pathCells
 .filter(x => /\.coffee$/.test(x.data('value')))
-.forEach(x => {
-    x.prepend(`
-        <i class="fa fa-coffee"></i>`);
-});
+.forEach(x => x.prepend(`<i class="fa fa-coffee"></i>`));
 
 
 $('.coverage-summary .file')
@@ -57,12 +51,184 @@ $pathCells
     x.css({'padding-left': `${10 + _i * 20}px`});
 });
 
-// todo: prevent missing subdirectories, e.g. for:
+class TreeNode {
+    public static baseLevel = 1;
+
+    constructor(public path: string) {
+        var parts = path.split('/');
+        this.level = parts.length - TreeNode.baseLevel;
+        this.name = parts.pop();
+        this.parentPath = parts.join('/');
+        this.children = [];
+    }
+    public name: string;
+    public html: string;
+    public level: number;
+    public parent: TreeNode;
+    public parentPath: string;
+    public children: TreeNode[];
+    public isLeaf() { return this.children.length === 0 }
+    public toHtml() {
+        this.children.sort((a, b) => a.name.localeCompare(b.name));
+        return this.html + this.children.map(x => x.toHtml());
+    }
+    public findRow() {
+        return $(`.file[data-value="${this.path}/"]`).parents('tr');
+    }
+    public showRow() {
+        this.findRow().removeClass('hidden');
+    }
+    public expandRow() {
+        this.findRow().removeClass('collapsed hidden');
+        if (this.children.length === 1) {
+            this.children[0].expandRow();
+        } else {
+            this.children.forEach(x => x.showRow());
+        }
+    }
+    public expandAll() {
+        this.findRow().removeClass('collapsed hidden');
+        this.children.forEach(x => x.expandAll());
+    }
+    public collapseRow() {
+        this.findRow().addClass('collapsed');
+        this.children.forEach((x) => x.hideAndCollapseRow());
+    }
+    public hideAndCollapseRow() {
+        this.findRow().addClass('collapsed hidden');
+        this.children.forEach((x) => x.hideAndCollapseRow());
+    }
+}
+
+let getRoot = (paths: string[]): string => {
+    var UniqueRoots: string[] = [];
+    paths.forEach(n => {
+        let root = n.split('/')[0];
+        if (UniqueRoots.indexOf(root) < 0) {
+            UniqueRoots.push(root);
+        }
+    });
+    return UniqueRoots.length === 1 ? UniqueRoots[0] : '';
+}
+
+class FolderStructure {
+
+    private paths: string[];
+    private Root: TreeNode;
+    private Dict: { [key: string]: TreeNode };
+
+    public applyChanges() {
+        this.scan();
+        this.createTreeStructure();
+        this.updateSummaryTable();
+        this.setEvents();
+    }
+
+    private scan() {
+        var $table = $('.coverage-summary');
+        var $directories = $table.find('.file[data-value]').toArray();
+        this.paths = $directories.map(x => $(x).data('value').replace(/\/$/,''));
+    }
+
+    private createTreeStructure() {
+        var pathRoot = getRoot(this.paths);
+        this.Root = new TreeNode(pathRoot);
+        TreeNode.baseLevel = this.Root.level;
+        this.Root.level = 0;
+
+        var nodes = this.paths
+            .map(x => new TreeNode(x));
+
+        this.Dict = nodes
+            .concat(this.Root)
+            .reduce(((dict, n) => (dict[n.path] = n) && dict), <any>{});
+
+        while (nodes.length > 0) {
+            nodes
+                .forEach(x => {
+                    if (!this.Dict[x.parentPath]) {
+                        let parent = new TreeNode(x.parentPath);
+                        nodes.push(parent);
+                        this.Dict[x.parentPath] = parent;
+                    }
+                    x.parent = this.Dict[x.parentPath];
+                    x.parent.children.push(x);
+                });
+
+            nodes = nodes.filter(x => !x.parent);
+        }
+    }
+
+    private updateSummaryTable() {
+        var $table = $('.coverage-summary');
+        var columns = $table.find('th').length;
+        var $header = $table.find('tr')[0].outerHTML;
+
+        Object.keys(this.Dict)
+            .forEach(x => {
+                var node = this.Dict[x];
+
+                if (!node.name.trim()) {
+                    return;
+                }
+
+                var $row = $table
+                    .find(`.file[data-value="${x}/"]`)
+                    .parents('tr');
+
+                // $row.attr('data-ns', node.path);
+
+                $row = $row.length ? $row : $(`
+                    <tr class="missing-group-row">
+                        <td class="file" colspan="${columns}" style="padding-left: ${10 + (node.level - 1) * 20}px">
+                            <i class="fa fa-angle-down" title="Expand/collapse"></i>
+                            <i class="fa fa-folder-open"></i><a>${node.name}</a></td>
+                        </tr>
+                    </tr>`);
+
+                // $row.attr('data-ns', node.path);
+
+                if (node.isLeaf()) {
+                    $row.addClass('collapsed');
+                }
+
+                node.html = $row[0].outerHTML;
+            });
+
+        $table.html(`<tbody>${$header}${this.Root.toHtml()}}</tbody`);
+    }
+
+    private setEvents() {
+        $('tr[data-ns] span')
+            .click((e: JQueryEventObject) => { // + debounce
+                var $row = $(e.currentTarget).parents('tr');
+                var setExpanded = $row.hasClass('collapsed');
+                var currentNode = this.Dict[$row.data('ns')];
+
+                if (e.originalEvent['detail'] > 1) { // double click
+                    window.getSelection().removeAllRanges(); // clear selection
+                    currentNode.expandAll();
+                } else {
+                    if (setExpanded) {
+                        currentNode.expandRow();
+                    } else {
+                        currentNode.collapseRow();
+                    }
+                }
+            })
+    }
+}
+
+(new FolderStructure()).applyChanges();
+
+// Prevent missing subdirectories, e.g. for:
 
 /*
 Scripts/Internal/TrainingEdit/
 Scripts/Internal/TrainingEdit/Directives/ActionField/
 */
+
+
 
 // todo: replace navigation with "expand leafs" in-place
 //  .. leave only links to leafs

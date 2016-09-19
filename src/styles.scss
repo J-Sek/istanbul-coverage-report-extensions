@@ -12,11 +12,21 @@ body {
     &.fa-angle-down {
         padding: 0 3px 0 0;
         width: auto;
+        transition: transform .1s;
+        vertical-align: 1px;
+
+        .collapsed & {
+            transform: rotate(-90deg);
+            vertical-align: 2px;
+        }
     }
 
-    &.fa-folder,
     &.fa-folder-open {
         color: #d2a032;
+        
+        .collapsed &:before {
+            content: "\f07b"; /* fa-folder */
+        }
     }
 
     &.fa-code {
@@ -34,7 +44,6 @@ body {
 .cline-no {
   background: transparent; /* background: #FCE1E5; */
 }
-
 
 .coverage-summary {
     td,
