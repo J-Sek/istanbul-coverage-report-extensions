@@ -40,7 +40,7 @@ let $pctValues = $('.coverage-summary .pct')
 
 $pctValues
     .filter(x => x.text() === '0%')
-    .forEach(x => x.css({color: 'rgba(255,0,0,.5)'}));
+    .forEach(x => x.css({color: 'rgba(194,31,57,0.7)'}));
 
 $pctValues
     .filter(x => x.text() === '100%' && x.next().text() === '0/0')
