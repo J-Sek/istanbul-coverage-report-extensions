@@ -4,12 +4,28 @@ body {
     font-family: "Segoe UI";
 }
 
-.fa-folder,
-.fa-folder-open {
-    color: #d2a032;
+.file > .fa {
     cursor: pointer;
     width: 20px;
     padding: 0 6px 0 0;
+
+    &.fa-angle-down {
+        padding: 0 3px 0 0;
+        width: auto;
+    }
+
+    &.fa-folder,
+    &.fa-folder-open {
+        color: #d2a032;
+    }
+
+    &.fa-code {
+        color: #519aba;
+    }
+
+    &.fa-coffee {
+        color: #cc3e44;
+    }
 }
 
 .low, .medium, .high,

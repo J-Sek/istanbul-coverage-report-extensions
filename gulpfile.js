@@ -3,6 +3,9 @@ let $ = require('gulp-load-plugins')();
 let st = require('st');
 let http = require('http');
 let open = require('open');
+let {shell} = require('execa');
+
+let coverageHacks = require('./coverageHacks');
 
 const DEST_DIR = 'dest';
 const SCRIPTS_PATH = 'src/**/*.ts';
@@ -34,7 +37,14 @@ gulp.task('apply:injection', () =>
     gulp.src([
             'coverage/**/*.html'
         ])
-        // .pipe(/* TODO */)
+        .pipe(coverageHacks({
+            baseDir: DEST_DIR,
+            styles: `${ASSETS_DIR}/**/*.css`,
+            scripts: [
+                'https://code.jquery.com/jquery-3.1.0.min.js',
+                `${ASSETS_DIR}/**/*.js`
+            ]
+        }))
         .pipe(gulp.dest(DEST_DIR))
 );
 
@@ -70,10 +80,14 @@ gulp.task('server', gulp.series('build', (done) => {
 
 gulp.task('watch', gulp.series('server', () => {
     $.livereload.listen({basePath: DEST_DIR});
-    gulp.watch(SCRIPTS_PATH,    ['build:scripts']);
-    gulp.watch(STYLES_PATH,     ['build:styles']);
+    gulp.watch(SCRIPTS_PATH,    gulp.series('build:scripts'));
+    gulp.watch(STYLES_PATH,     gulp.series('build:styles'));
 }));
 
 gulp.task('open', gulp.series('server', () =>
     open(`http://localhost:${port}`)
 ));
+
+gulp.task('hotel:init', () =>
+    shell('hotel add "gulp watch"')
+);
