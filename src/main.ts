@@ -126,8 +126,13 @@ class FolderStructure {
 
     private scan() {
         var $table = $('.coverage-summary');
-        var $directories = $table.find('.file[data-value]').toArray();
-        this.paths = $directories.map(x => $(x).data('value').replace(/\/$/,''));
+        this.paths = $table
+            .find('.file[data-value]')
+            .toArray()
+            .map($)
+            .map(x => x.data('value'))
+            .filter(x => !/\.(js|coffee|ts)x?$/.test(x))
+            .map(x => x.replace(/\/$/,''));
     }
 
     private createTreeStructure() {
@@ -180,7 +185,7 @@ class FolderStructure {
 
                 $row = $row.length ? $row : $(`
                     <tr class="missing-group-row">
-                        <td class="file" colspan="${columns}" style="padding-left: ${10 + (node.level - 1) * 20}px">
+                        <td class="file" data-value="${node.path}/" colspan="${columns}" style="padding-left: ${10 + (node.level - 1) * 20}px">
                             <i class="fa fa-angle-down" title="Expand/collapse"></i>
                             <i class="fa fa-folder-open"></i><a>${node.name}</a></td>
                         </tr>
@@ -195,15 +200,21 @@ class FolderStructure {
                 node.html = $row[0].outerHTML;
             });
 
-        $table.html(`<tbody>${$header}${this.Root.toHtml()}}</tbody`);
+        if (this.Root.children.length > 0) {
+            $table.html(`<thead>${$header}</thead><tbody>${this.Root.toHtml()}}</tbody`);
+        }
     }
 
     private setEvents() {
-        $('tr[data-ns] span')
+        $('.file a')
+            .click(e => e.preventDefault());
+        
+        $('.file')
             .click((e: JQueryEventObject) => { // + debounce
-                var $row = $(e.currentTarget).parents('tr');
+                var $target = $(e.currentTarget);
+                var $row = $target.parents('tr');
                 var setExpanded = $row.hasClass('collapsed');
-                var currentNode = this.Dict[$row.data('ns')];
+                var currentNode = this.Dict[$target.data('value').replace(/\/$/,'')];
 
                 if (e.originalEvent['detail'] > 1) { // double click
                     window.getSelection().removeAllRanges(); // clear selection
@@ -220,14 +231,6 @@ class FolderStructure {
 }
 
 (new FolderStructure()).applyChanges();
-
-// Prevent missing subdirectories, e.g. for:
-
-/*
-Scripts/Internal/TrainingEdit/
-Scripts/Internal/TrainingEdit/Directives/ActionField/
-*/
-
 
 
 // todo: replace navigation with "expand leafs" in-place

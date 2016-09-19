@@ -4,6 +4,10 @@ body {
     font-family: "Segoe UI";
 }
 
+.hidden {
+    display: none;
+}
+
 .file > .fa {
     cursor: pointer;
     width: 20px;
