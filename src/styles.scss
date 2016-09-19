@@ -28,29 +28,39 @@ body {
     }
 }
 
-.low, .medium, .high,
+.low, 
+.medium, 
+.high,
 .cline-no {
   background: transparent; /* background: #FCE1E5; */
 }
 
-.coverage-summary td,
-.coverage-summary th {
-    padding: 2px;
 
-    &.pct, 
-    &.abs {
-        padding-right: 5px;
-        font-size: 13px;
+.coverage-summary {
+    td,
+    th {
+        padding: 2px;
     }
-}
 
-.coverage-summary td {
-    border-right: 1px solid #ddd;
-    border-left: 1px solid #ddd;
-}
+    td {
+        border-right: 1px solid #ddd;
+        border-left: 1px solid #ddd;
+        &.pct, 
+        &.abs {
+            padding-right: 5px;
+            font-size: 13px;
+        }
+    }
 
-.coverage-summary tr {
-    border-bottom: 1px solid #eee;
+    tr {
+        border-bottom: 1px solid #eee;
+    }
+
+    .sorter {
+        float: right;
+        margin-top: 4px;
+        height: 12px;
+    }
 }
 
 .chart {
