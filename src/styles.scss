@@ -36,6 +36,12 @@ body {
 .coverage-summary td,
 .coverage-summary th {
     padding: 2px;
+
+    &.pct, 
+    &.abs {
+        padding-right: 5px;
+        font-size: 13px;
+    }
 }
 
 .coverage-summary td {

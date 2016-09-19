@@ -2,7 +2,7 @@
 
 let $pathCells =  $('.coverage-summary .file[data-value]')
 .toArray()
-.map(x => $(x));
+.map($);
 
 $pathCells
 .filter(x => !/\.(js|coffee|ts)x?$/.test(x.data('value')))
@@ -31,6 +31,13 @@ $('.coverage-summary .file')
     .find('a')
     .text((_, t) => t.match(/\/?([^\/]*)\/?$/)[1]);
 
+$('.coverage-summary .pct')
+    .text((_, t) => /\./.test(t) ? `${Math.round(parseFloat(t.split('%')[0]))}%` : t)
+    .toArray()
+    .map($)
+    .filter(x => x.text() === '0%')
+    .forEach(x => x.css({color: 'rgba(255,0,0,.5)'}));
+
 $pathCells
 .forEach(x => {
     var _i = x.data('value').split('/').length - 2;
@@ -45,3 +52,4 @@ Scripts/Internal/TrainingEdit/Directives/ActionField/
 */
 
 // todo: replace navigation with "expand leafs" in-place
+//  .. leave only links to leafs
